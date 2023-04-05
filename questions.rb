@@ -371,7 +371,7 @@ class Reply
     end
 
     def save
-        if @id,nil? 
+        if @id.nil? 
             QuestionsDatabase.instance.execute(<<-SQL, @user_id, @question_id)
                 INSERT INTO
                     replies (user_id, question_id)
