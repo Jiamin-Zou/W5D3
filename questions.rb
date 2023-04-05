@@ -60,6 +60,7 @@ class User
     def authored_replies
         Reply.find_by_user_id(@id)
     end
+
 end
 
 class Question
@@ -262,5 +263,19 @@ class QuestionFollow
 
         return nil if follow.empty?
         QuestionFollow.new(follow.first)
+    end
+
+    def self.followers_for_question_id(q_id)
+        user_ids = QuestionsDatabase.instance.execute(<<-SQL, q_id)
+            SELECT
+                user_id
+            FROM
+                question_follows
+            WHERE
+                question_id = ?
+        SQL
+        
+        return nil if user_ids.empty?
+        user_id.map { |id| User.find_by_id(id)}
     end
 end

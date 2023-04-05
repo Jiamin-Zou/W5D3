@@ -60,10 +60,25 @@ VALUES
 INSERT INTO
     questions (title, body, user_id)
 VALUES
-    ('Why', 'Why is here hair blue', (SELECT id FROM users WHERE fname = 'John')),
+    ('Why', 'Why is her hair blue', (SELECT id FROM users WHERE fname = 'John' AND lname = 'Doe')),
     ('Who', 'Who is Snow White', (SELECT id FROM users WHERE fname = 'Snow' AND lname = 'White'));
 
 INSERT INTO 
     replies (question_id, reply_id, user_id, body)
 VALUES
-    (1, NULL, 2, 'Great question');
+    (1, NULL, 2, 'Great question'),
+    (1, 1, 1, 'Awful question');
+
+INSERT INTO
+    question_follows (user_id, question_id)
+VALUES
+    (1, 1),
+    (2, 1),
+    (1, 2);
+
+INSERT INTO
+    question_likes (user_id, question_id)
+VALUES
+    (2, 1),
+    (2, 2),
+    (1, 1);
