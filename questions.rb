@@ -61,6 +61,11 @@ class User
         Reply.find_by_user_id(@id)
     end
 
+    def followed_questions
+        QuestionFollow.followed_questions_for_user_id(@id)
+    end
+
+
 end
 
 class Question
@@ -113,6 +118,14 @@ class Question
 
     def replies
         Reply.find_by_question_id(@id)
+    end
+
+    def followers
+        QuestionFollow.followers_for_question_id(@id)
+    end
+
+    def self.most_followed(n)
+        QuestionFollow.most_followed_questions(n)
     end
 end
 
@@ -291,5 +304,20 @@ class QuestionFollow
 
         return nil if follow_q.empty?
         follow_q.map { |id| Question.find_by_id(id['question_id'])}
+    end
+
+    def self.most_followed_questions(n)
+        most_followed_q = QuestionsDatabase.instance.execute(<<-SQL, n)
+        SELECT
+            question_id, COUNT(question_id)
+        FROM
+            question_follows
+        GROUP BY
+            question_id
+        LIMIT ?
+        SQL
+
+        return nil if most_followed_q.empty?
+        most_followed_q.map { |q| Question.find_by_id(q['question_id'])}
     end
 end
