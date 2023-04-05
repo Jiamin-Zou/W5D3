@@ -83,6 +83,22 @@ class Question
         return nil if question.empty?
         Question.new(question.first)
     end
+
+    def self.find_by_author_id(author_id)
+        questions = QuestionsDatabase.instance.execute(<<-SQL, author_id)
+            SELECT
+                *
+            FROM 
+                questions
+            WHERE
+                user_id = ?
+        SQL
+
+        return nil if questions.empty?
+        questions.map { |q| Question.new(q)}
+                
+
+    end
 end
 
 class QuestionLike
@@ -144,5 +160,67 @@ class Reply
 
         return nil if reply.empty?
         Reply.new(reply.first)
+    end
+
+    def self.find_by_user_id(user_id)
+        replies = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+        SELECT
+            *
+        FROM
+            replies
+        WHERE
+            user_id = ?
+        SQL
+
+        return nil if replies.empty?
+        replies.map { |r| Reply.new(r) }
+
+    end
+
+    def self.find_by_question_id(q_id)
+        replies = QuestionsDatabase.instance.execute(<<-SQL, q_id)
+
+        SELECT
+            *
+        FROM
+            replies
+        WHERE
+            question_id = ?
+        SQL
+
+        return nil if replies.empty?
+        replies.map { |r| Reply.new(r)}
+
+    end
+
+end
+
+class QuestionFollow
+    attr_accessor :user_id, :question_id
+    attr_reader :id
+
+    def initialize(options)
+        @id = options['id']
+        @user_id = options['user_id']
+        @question_id = options['question_id']
+    end
+
+    def self.all
+        data = QuestionsDatabase.instance.execute('SELECT * FROM question_follows')
+        data.map { |datum| QuestionFollow.new(datum)}
+    end
+
+    def self.find_by_id(id)
+        follow = QuestionsDatabase.instance.execute(<<-SQL, id)
+            SELECT
+                *
+            FROM
+                question_follows
+            WHERE
+                id = ?
+        SQL
+
+        return nil if follow.empty?
+        QuestionFollow.new(follow.first)
     end
 end
