@@ -157,6 +157,19 @@ class QuestionLike
         return nil if like.empty?
         QuestionLike.new(like.first)
     end
+
+    def self.likers_for_question_id(q_id)
+        likers = QuestionsDatabase.instance.execute(<<-SQL, q_id)
+            SELECT
+                user_id
+            FROM
+                question_likes
+            WHERE
+                question_id = ?
+        SQL
+        return nil if likers.empty?
+        likers.map { |liker| User.find_by_id(liker['user_id'])}
+    end
 end
 
 class Reply
