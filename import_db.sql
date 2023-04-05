@@ -40,9 +40,9 @@ CREATE TABLE questions (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     body TEXT NOT NULL,
-    author_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
 
-    FOREIGN KEY (author_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE users (
@@ -58,7 +58,7 @@ VALUES
     ('Snow', 'White');
 
 INSERT INTO
-    questions (title, body, author_id)
+    questions (title, body, user_id)
 VALUES
     ('Why', 'Why is here hair blue', (SELECT id FROM users WHERE fname = 'John')),
     ('Who', 'Who is Snow White', (SELECT id FROM users WHERE fname = 'Snow' AND lname = 'White'));
