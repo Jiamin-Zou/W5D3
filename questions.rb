@@ -65,6 +65,28 @@ class User
         QuestionFollow.followed_questions_for_user_id(@id)
     end
 
+    def liked_questions
+        QuestionLike.liked_questions_for_user_id(@id)
+    end
+
+    def average_karma
+        questions = self.authored_questions
+        likes = questions.map { |q| q.num_likes}
+        (1.0*likes.sum) / questions.size
+    end
+
+    def save
+        raise "#{self} already in database" if @id 
+        QuestionsDatabase.instance.execute(<<-SQL, fname, lname)
+            INSERT INTO
+                users (fname, lname)
+            VALUES
+                (?, ?)
+        SQL
+
+        @id = QuestionsDatabase.instance.last_insert_row_id
+
+    end
 
 end
 
@@ -103,7 +125,7 @@ class Question
             SELECT
                 *
             FROM 
-                questions
+                questions 
             WHERE
                 user_id = ?
         SQL
@@ -127,6 +149,46 @@ class Question
     def self.most_followed(n)
         QuestionFollow.most_followed_questions(n)
     end
+
+    def likers
+        QuestionLike.likers_for_question_id(@id)
+    end
+
+    def num_likes
+        QuestionLike.likers_for_question_id(@id).size
+    end
+
+    def self.most_liked(n)
+        most_like = QuestionsDatabase.instance.execute(<<-SQL, n)
+            SELECT
+                question_id, COUNT(question_id)
+            FROM
+                question_likes
+            GROUP BY
+                question_id
+            LIMIT
+                ?
+        SQL
+
+        return nil if most_like.empty?
+        most_like.map { |most| Question.find_by_id(most['question_id'])}
+
+    end
+
+    def save
+        raise "#{self} already in database" if @id 
+        QuestionsDatabase.instance.execute(<<-SQL, title, body, user_id)
+            INSERT INTO
+                questions (title, body, user_id)
+            VALUES
+                (?, ?, ?)
+        SQL
+
+        @id = QuestionsDatabase.instance.last_insert_row_id
+        
+    end
+
+
 end
 
 class QuestionLike
@@ -170,6 +232,35 @@ class QuestionLike
         return nil if likers.empty?
         likers.map { |liker| User.find_by_id(liker['user_id'])}
     end
+
+    def self.liked_questions_for_user_id(user_id)
+        questions = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+            SELECT
+                question_id
+            FROM
+                question_likes
+            WHERE
+                user_id = ?
+        SQL
+
+        return nil if questions.empty?
+        questions.map { |q| Question.find_by_id(q['question_id'])}
+    end
+
+    def self.num_likes_for_question_id(question_id)
+        likes = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+            SELECT
+                COUNT(question_id) AS num_like
+            FROM
+                question_likes
+            WHERE
+                question_id = ?
+        SQL
+
+        return nil if likes.empty?
+        likes.first['num_like']
+    end
+
 end
 
 class Reply
@@ -258,6 +349,19 @@ class Reply
 
         return nil if replies.empty?
         replies.map { |r| Reply.new(r)}
+    end
+
+    def save
+        raise "#{self} already in database" if @id 
+        QuestionsDatabase.instance.execute(<<-SQL, user_id, question_id)
+            INSERT INTO
+                replies (user_id, question_id)
+            VALUES
+                (?, ?)
+        SQL
+
+        @id = QuestionsDatabase.instance.last_insert_row_id
+        
     end
 
 end
