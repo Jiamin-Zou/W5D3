@@ -274,8 +274,8 @@ class QuestionFollow
             WHERE
                 question_id = ?
         SQL
-        
+
         return nil if user_ids.empty?
-        user_id.map { |id| User.find_by_id(id)}
+        user_ids.map { |id| User.find_by_id(id['user_id']) }
     end
 end
