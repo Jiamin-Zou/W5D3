@@ -278,4 +278,18 @@ class QuestionFollow
         return nil if user_ids.empty?
         user_ids.map { |id| User.find_by_id(id['user_id']) }
     end
+
+    def self.followed_questions_for_user_id(user_id)
+        follow_q = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+            SELECT
+                question_id
+            FROM
+                question_follows
+            WHERE
+                user_id = ?
+        SQL
+
+        return nil if follow_q.empty?
+        follow_q.map { |id| Question.find_by_id(id['question_id'])}
+    end
 end
