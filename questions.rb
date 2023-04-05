@@ -76,16 +76,25 @@ class User
     end
 
     def save
-        raise "#{self} already in database" if @id 
-        QuestionsDatabase.instance.execute(<<-SQL, fname, lname)
-            INSERT INTO
-                users (fname, lname)
-            VALUES
-                (?, ?)
-        SQL
+        if @id.nil? 
+            QuestionsDatabase.instance.execute(<<-SQL, @fname, @lname)
+                INSERT INTO
+                    users (fname, lname)
+                VALUES
+                    (?, ?)
+            SQL
 
-        @id = QuestionsDatabase.instance.last_insert_row_id
-
+            @id = QuestionsDatabase.instance.last_insert_row_id
+        else
+            QuestionsDatabase.instance.execute(<<-SQL, @fname, @lname, @id)
+                UPDATE
+                    users
+                SET
+                    fname = ?, lname = ?
+                WHERE
+                    id = ?
+            SQL
+        end
     end
 
 end
@@ -176,15 +185,25 @@ class Question
     end
 
     def save
-        raise "#{self} already in database" if @id 
-        QuestionsDatabase.instance.execute(<<-SQL, title, body, user_id)
-            INSERT INTO
-                questions (title, body, user_id)
-            VALUES
-                (?, ?, ?)
-        SQL
+        if @id.nil? 
+            QuestionsDatabase.instance.execute(<<-SQL, @title, @body, @user_id)
+                INSERT INTO
+                    questions (title, body, user_id)
+                VALUES
+                    (?, ?, ?)
+            SQL
 
-        @id = QuestionsDatabase.instance.last_insert_row_id
+            @id = QuestionsDatabase.instance.last_insert_row_id
+        else
+            QuestionsDatabase.instance.execute(<<-SQL, @title, @body, @user_id, @id)
+                UPDATE
+                    questions
+                SET
+                    title = ?, body = ?, user_id = ?
+                WHERE
+                    id = ?
+            SQL
+        end
         
     end
 
@@ -352,15 +371,25 @@ class Reply
     end
 
     def save
-        raise "#{self} already in database" if @id 
-        QuestionsDatabase.instance.execute(<<-SQL, user_id, question_id)
-            INSERT INTO
-                replies (user_id, question_id)
-            VALUES
-                (?, ?)
-        SQL
+        if @id,nil? 
+            QuestionsDatabase.instance.execute(<<-SQL, @user_id, @question_id)
+                INSERT INTO
+                    replies (user_id, question_id)
+                VALUES
+                    (?, ?)
+            SQL
 
-        @id = QuestionsDatabase.instance.last_insert_row_id
+            @id = QuestionsDatabase.instance.last_insert_row_id
+        else
+            QuestionsDatabase.instance.execute(<<-SQL, @user_id, @question_id, @id)
+                UPDATE
+                    replies
+                SET
+                    user_id = ?, question_id = ?
+                WHERE
+                    id = ?
+            SQL
+        end
         
     end
 
